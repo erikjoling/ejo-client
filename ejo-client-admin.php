@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Client Admin
  * Plugin URI:          http://github.com/erikjoling/ejo-client-admin
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             0.1
+ * Version:             0.1.1
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client-admin
@@ -21,7 +21,7 @@
 final class EJO_Client_Admin
 {
     /* Version number of this plugin */
-    public static $version = '0.1';
+    public static $version = '0.1.1';
 
     /* Holds the instance of this class. */
     protected static $_instance = null;
@@ -57,10 +57,15 @@ final class EJO_Client_Admin
 
         /* Add activation hook */
         register_activation_hook( __FILE__, array( 'EJO_Client_Admin', 'on_plugin_activation') );
-        // add_action( 'init', array( 'EJO_Client_Admin', 'register_client_role' ) );
 
         /* Add uninstall hook */
         register_uninstall_hook( __FILE__, array( 'EJO_Client_Admin', 'on_plugin_uninstall') );
+        // register_deactivation_hook( __FILE__, array( 'EJO_Client_Admin', 'on_plugin_uninstall') );
+
+        /* Change Wordpress SEO capability to edit_theme_options */
+        add_filter( 'wpseo_manage_options_capability', function(){
+            return 'edit_theme_options';
+        } );
     }
 
     /* Fire when activating this plugin */
@@ -90,25 +95,21 @@ final class EJO_Client_Admin
         load_plugin_textdomain(EJO_Client_Admin::$handle, false, EJO_Client_Admin::$handle . '/languages' );
     }
 
-    /**
-     * Register client role 
-     * 
-     * [TO-DO] Need to add error message 
-     */
+    /* Register client role */
     public static function register_client_role() 
     {
-        /* Check if new role already exists */
-        if ( get_role( EJO_Client_Admin::$role_name ) ) {
-            write_log('HALT: client-admin bestaat al');
-            return; // Role already exists
-        }
+        /**
+         * Remove client role 
+         * Due to shortcut of add_role function it won't edit capabilities otherwise
+         */
+        remove_role( EJO_Client_Admin::$role_name );
 
         /* Get editor-role (the new client-role is based on this) */
         $editor = get_role( 'editor' );
 
         /* Check if editor-role exists */
         if ( $editor == NULL ) {
-            write_log('HALT: Editor role bestaat nog niet');
+            /* [TO-DO] Need to add error message */
             return; // Editor role does not exist
         }
 
@@ -140,7 +141,7 @@ final class EJO_Client_Admin
             // 'promote_users' => 1,
             'edit_theme_options' => 1,
             // 'delete_themes' => 1,
-            'export' => 1,
+            // 'export' => 1,
         );
 
         /* Merge editor-capabilities with some specific admin-capabilities */
@@ -158,7 +159,13 @@ final class EJO_Client_Admin
     /* Unregister client role */
     public static function unregister_client_role()
     {
-        /* When a role is removed, the users who have this role lose all rights on the site */
+        /* Remove client role */
+        remove_role( EJO_Client_Admin::$role_name );
+
+        /** 
+         * When a role is removed, the users who have this role lose all rights on the site 
+         * Maybe assign them to editor role
+         */
     }
 }
 
