@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name:         EJO Client Admin
- * Plugin URI:          http://github.com/erikjoling/ejo-client-admin
+ * Plugin URI:          https://github.com/erikjoling/ejo-client-admin
  * Description:         Improved permissions and user experience for EJOweb clients.
  * Version:             0.1.1
  * Author:              Erik Joling
