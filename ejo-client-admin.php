@@ -62,6 +62,18 @@ final class EJO_Client_Admin
         register_uninstall_hook( __FILE__, array( 'EJO_Client_Admin', 'on_plugin_uninstall') );
         // register_deactivation_hook( __FILE__, array( 'EJO_Client_Admin', 'on_plugin_uninstall') );
 
+        /* Temporary removal of posts */
+        add_action( 'admin_menu', function() {  
+            if ( get_user_role() == 'ejo-client' )
+                remove_menu_page( 'edit.php' ); // Posts
+        });
+
+        /* Temporary removal of posts */
+        add_action( 'admin_bar_menu', function( $wp_admin_bar ) {  
+            if ( get_user_role() == 'ejo-client' )
+                $wp_admin_bar->remove_node( 'new-post' );
+        }, 999);
+
         /* Change Wordpress SEO capability to edit_theme_options */
         add_filter( 'wpseo_manage_options_capability', function(){
             return 'edit_theme_options';
@@ -123,9 +135,6 @@ final class EJO_Client_Admin
             // 'edit_files' => 1,
             // 'manage_options' => 1,
             // 'import' => 1,
-            // 'level_10' => 1,
-            // 'level_9' => 1,
-            // 'level_8' => 1,
             // 'delete_users' => 1,
             // 'create_users' => 1,
             // 'unfiltered_upload' => 1,
@@ -150,12 +159,18 @@ final class EJO_Client_Admin
         /* Merge capabilities which have to be added */
         $client_capabilities_to_add = array_merge( $client_capabilities_to_add, $gravityforms_caps );
 
+        /* Blog capabilities to remove */
+        // $disabled_blog_caps = EJO_Client_Admin::get_blog_capabilities_to_remove();
+
+        /* Merge capabilities which have to be added */
+        // $client_capabilities_to_add = array_merge( $client_capabilities_to_add, $disabled_blog_caps );        
+
         /* Merge editor-capabilities with some specific admin-capabilities */
         $client_capabilities = apply_filters( 
             'ejo_client_capabilities', 
             array_merge( $editor->capabilities, $client_capabilities_to_add ), 
             $editor->capabilities, 
-            $client_capabilities_to_add 
+            $client_capabilities_to_add
         );
 
         /* Add new role */
@@ -184,6 +199,26 @@ final class EJO_Client_Admin
         );
     }
 
+    /* Blog capabilities to remove */
+    public static function get_blog_capabilities_to_remove() 
+    {
+        /* Blog capabilities to remove */
+        return array(
+            'edit_posts' => 0,
+            'edit_others_posts' => 0,
+            'edit_published_posts' => 0,
+            'publish_posts' => 0,
+            // 'read' => 0,
+            'delete_posts' => 0,
+            'delete_others_posts' => 0,
+            'delete_published_posts' => 0,
+            'delete_private_posts' => 0,
+            'edit_private_posts' => 0,
+            'read_private_posts' => 0,
+            'manage_categories' => 0,
+        );
+    }
+
 
     /* Unregister client role */
     public static function unregister_client_role()
@@ -200,3 +235,12 @@ final class EJO_Client_Admin
 
 /* Call EJO Client Admin */
 EJO_Client_Admin::instance();
+
+function get_user_role() {
+    global $current_user;
+
+    $user_roles = $current_user->roles;
+    $user_role = array_shift($user_roles);
+
+    return $user_role;
+}
