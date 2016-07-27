@@ -144,6 +144,12 @@ final class EJO_Client_Admin
             // 'export' => 1,
         );
 
+        /* Get the right caps for gravityforms */
+        $gravityforms_caps = EJO_Client_Admin::get_gravityforms_caps();
+
+        /* Merge capabilities which have to be added */
+        $client_capabilities_to_add = array_merge( $client_capabilities_to_add, $gravityforms_caps );
+
         /* Merge editor-capabilities with some specific admin-capabilities */
         $client_capabilities = apply_filters( 
             'ejo_client_capabilities', 
@@ -155,6 +161,29 @@ final class EJO_Client_Admin
         /* Add new role */
         add_role( EJO_Client_Admin::$role_name, __( 'Client' ), $client_capabilities );
     }
+
+    /* Get the right caps for gravityforms */
+    public static function get_gravityforms_caps() 
+    {
+        return array(
+            'gravityforms_edit_forms' => 1,
+            'gravityforms_delete_forms' => 1,
+            'gravityforms_create_form' => 1,
+            'gravityforms_view_entries' => 1,
+            'gravityforms_edit_entries' => 1,
+            'gravityforms_delete_entries' => 1,
+            // 'gravityforms_view_settings' => 1,
+            // 'gravityforms_edit_settings' => 1,
+            // 'gravityforms_export_entries' => 1,
+            // 'gravityforms_uninstall' => 1,
+            'gravityforms_view_entry_notes' => 1,
+            'gravityforms_edit_entry_notes' => 1,
+            // 'gravityforms_view_updates' => 1,
+            // 'gravityforms_view_addons' => 1,
+            // 'gravityforms_preview_forms' => 1,
+        );
+    }
+
 
     /* Unregister client role */
     public static function unregister_client_role()
