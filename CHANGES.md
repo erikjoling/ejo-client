@@ -1,3 +1,8 @@
+1.x
+- Rename to EJO-Client
+- Support for EJO Contactadvertenties
+- Support for disabling blog
+
 1.1
 - Added changelog to repository and uppercased README..
 - Added basic gravityforms capabilities to ejo-client
