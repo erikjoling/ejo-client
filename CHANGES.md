@@ -1,3 +1,5 @@
+- Removed redundant function and made some organizational tweaks 
+
 1.2
 - Rename to EJO-Client
 - Support for EJO Contactadvertenties

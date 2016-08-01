@@ -20,11 +20,11 @@
  */
 final class EJO_Client
 {
+    /* Holds the instance of this class. */
+    private static $_instance = null;
+
     /* Version number of this plugin */
     public static $version = '0.1.2';
-
-    /* Holds the instance of this class. */
-    protected static $_instance = null;
 
     /* Stores the handle of this plugin */
     public static $handle;
@@ -42,7 +42,7 @@ final class EJO_Client
     public static $blog_enabled = false;
 
     /* Returns the instance. */
-    public static function instance() 
+    public static function init() 
     {
         if ( !self::$_instance )
             self::$_instance = new self;
@@ -50,7 +50,7 @@ final class EJO_Client
     }
 
     /* Plugin setup. */
-    protected function __construct() 
+    private function __construct() 
     {
         /* Setup */
         add_action( 'plugins_loaded', array( 'EJO_Client', 'setup' ), 1 );
@@ -271,18 +271,6 @@ final class EJO_Client
         );
     }
 
-    /* Get contacts capabilities (EJO Contactads plugin) */
-    public static function get_contactads_caps() 
-    {
-        if ( class_exists( 'EJO_Contactads' ) )
-            return EJO_Contactads::get_caps();
-
-        /* Return empty array when EJO Contactadvertenties plugin is not active */
-        return array();
-    }
-
-
-
     /* Unregister client role */
     public static function unregister_client_role()
     {
@@ -297,4 +285,4 @@ final class EJO_Client
 }
 
 /* Call EJO Client Admin */
-EJO_Client::instance();
+EJO_Client::init();
