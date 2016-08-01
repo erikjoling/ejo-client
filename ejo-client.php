@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:         EJO Client Admin
+ * Plugin Name:         EJO Client
  * Plugin URI:          https://github.com/erikjoling/ejo-client
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             0.1.1
+ * Version:             0.1.2
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client
@@ -21,7 +21,7 @@
 final class EJO_Client
 {
     /* Version number of this plugin */
-    public static $version = '0.1.1';
+    public static $version = '0.1.2';
 
     /* Holds the instance of this class. */
     protected static $_instance = null;
@@ -62,20 +62,8 @@ final class EJO_Client
         register_activation_hook( __FILE__, array( 'EJO_Client', 'on_plugin_activation') );
 
         /* Add uninstall hook */
-        // register_uninstall_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
+        register_uninstall_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
         register_deactivation_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
-
-        // //* Temporary removal of posts 
-        // add_action( 'admin_menu', function() {  
-        //     if ( get_user_role() == 'client' )
-        //         remove_menu_page( 'edit.php' ); // Posts
-        // });
-
-        // //* Temporary removal of posts 
-        // add_action( 'admin_bar_menu', function( $wp_admin_bar ) {  
-        //     if ( get_user_role() == 'client' )
-        //         $wp_admin_bar->remove_node( 'new-post' );
-        // }, 999);
 
         /* Change Wordpress SEO capability to edit_theme_options */
         add_filter( 'wpseo_manage_options_capability', function(){
@@ -129,7 +117,7 @@ final class EJO_Client
         $client_role = get_role( EJO_Client::$role_name );
 
         // If the role exists, add the capabilities
-        if ( ! is_null( $role ) ) {
+        if ( ! is_null( $client_role ) ) {
 
             //* Manage client capabilities 
             foreach (EJO_Client::get_client_caps() as $caps) {                
@@ -310,13 +298,3 @@ final class EJO_Client
 
 /* Call EJO Client Admin */
 EJO_Client::instance();
-
-/* Temporary helper function */
-function get_user_role() {
-    global $current_user;
-
-    $user_roles = $current_user->roles;
-    $user_role = array_shift($user_roles);
-
-    return $user_role;
-}

@@ -1,7 +1,8 @@
-1.x
+1.2
 - Rename to EJO-Client
 - Support for EJO Contactadvertenties
-- Support for disabling blog
+- Support for enabling/disabling blog-functionality
+- Better code organization
 
 1.1
 - Added changelog to repository and uppercased README..
