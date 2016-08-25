@@ -38,9 +38,6 @@ final class EJO_Client
     /* Name of client role */
     public static $role_name = 'client';
 
-    //* Blog activated for client
-    public static $blog_enabled = false;
-
     /* Returns the instance. */
     public static function init() 
     {
@@ -53,10 +50,7 @@ final class EJO_Client
     private function __construct() 
     {
         /* Setup */
-        add_action( 'plugins_loaded', array( 'EJO_Client', 'setup' ), 1 );
-
-        /* Load Translations */
-        add_action( 'plugins_loaded', array( 'EJO_Client', 'load_textdomain' ), 2 );
+        self::setup();
 
         /* Add activation hook */
         register_activation_hook( __FILE__, array( 'EJO_Client', 'on_plugin_activation') );
@@ -70,96 +64,94 @@ final class EJO_Client
             return 'edit_theme_options';
         } );
 
-        add_action( 'after_setup_theme', array( 'EJO_Client', 'test') );
+        add_action( 'admin_init', array( 'EJO_Client', 'test') );
     }
 
     public static function test() {
-
+        // self::set_client_caps();
     }
 
     /* Defines the directory path and URI for the plugin. */
     public static function setup() 
     {
-        EJO_Client::$handle = dirname( plugin_basename( __FILE__ ) );
-        EJO_Client::$dir = plugin_dir_path( __FILE__ );
-        EJO_Client::$uri = plugin_dir_url( __FILE__ );
-    }
+        self::$handle = dirname( plugin_basename( __FILE__ ) );
+        self::$dir = plugin_dir_path( __FILE__ );
+        self::$uri = plugin_dir_url( __FILE__ );
 
-    /* Load Translations */
-    public static function load_textdomain() 
-    {
         /* Load the translation for the plugin */
-        load_plugin_textdomain(EJO_Client::$handle, false, EJO_Client::$handle . '/languages' );
+        load_plugin_textdomain(self::$handle, false, self::$handle . '/languages' );
     }
 
     /* Fire when activating this plugin */
     public static function on_plugin_activation()
     {
-        EJO_Client::register_client_role();
+        self::register_client_role();
+        self::set_client_caps();
     }
 
     /* Fire when uninstalling this plugin */
     public static function on_plugin_uninstall()
     {
-        EJO_Client::unregister_client_role();
+        self::unregister_client_role();
     }
     
     /* Register client role */
     public static function register_client_role() 
     {
-        //* Remove 
-        remove_role( EJO_Client::$role_name );
+        /* Try to get client role */
+        $client_role = get_role( self::$role_name );
 
-        /* Add new role */
-        add_role( EJO_Client::$role_name, __( 'Client' ) );
+        /** 
+         * If client-role doesn't exist, add it
+         * Else remove capabilities of the existing client role
+         */
+        if ( is_null( $client_role ) ) {
+            add_role( self::$role_name, __( 'Client' ) );
+        }
+        else {
+            self::remove_client_caps($client_role);
+        }
+    }
 
+    public static function set_client_caps()
+    {
         /* Get new client role */
-        $client_role = get_role( EJO_Client::$role_name );
+        $client_role = get_role( self::$role_name );
 
-        // If the role exists, add the capabilities
-        if ( ! is_null( $client_role ) ) {
+        if ( is_null( $client_role ) ) {
+            return __('No Client Role found');
+        }
 
-            //* Manage client capabilities 
-            foreach (EJO_Client::get_client_caps() as $caps) {                
+        //* Remove all current capabilities of the client-role
+        self::remove_client_caps($client_role);
 
-                //* Add client caps
-                $client_role->add_cap( $caps );
-            }
+        //* Get default client caps
+        $client_caps = self::get_default_client_caps();
 
-            //* Manage gravityforms capabilities
-            foreach (EJO_Client::get_gravityforms_caps() as $caps) {                
+        //* Add blog capabilities    
+        $client_caps = array_merge( $client_caps, self::get_blog_caps() );
+        
+        //* Add plugin capabilities
+        $client_caps = array_merge( $client_caps, self::get_gravityforms_caps() ); // Gravity Forms
+        $client_caps = array_merge( $client_caps, self::get_ejo_contactadvertentie_caps() ); // EJO Contactadvertenties
 
-                //* Add Gravityforms caps
-                $client_role->add_cap( $caps );
-            }
+        //* Remove double capabilities
+        $client_caps = array_unique($client_caps);
 
-            //* Check if blog is enabled for client
-            if (! EJO_Client::$blog_enabled) {
+        //* Allow client_caps to be filtered
+        $client_caps = apply_filters( 'ejo_client_caps', $client_caps );
 
-                //* Remove blog capabilities
-                foreach (EJO_Client::get_blog_caps() as $caps) {     
+        //* Add client capabilities 
+        foreach ($client_caps as $cap) {
 
-                    //* Remove Blog caps
-                    $client_role->remove_cap( $caps );
-                }
-            }
-
-            //* Check if contactad plugin is activated
-            if ( class_exists( 'EJO_Contactads' ) ) {
-
-                //* Add contactad capabilities
-                foreach (EJO_Contactads::get_caps() as $caps) {                
-
-                    $client_role->add_cap( $caps );
-                }
-            }
+            $client_role->add_cap( $cap );
         }
     }
 
     /* Get the right caps for client */
-    public static function get_client_caps() 
+    public static function get_default_client_caps() 
     {
-        return array(/* Get the right caps for gravityforms */
+        $default_client_caps = array(/* Get the right caps for gravityforms */
             //* Super Admin
             // 'manage_network',
             // 'manage_sites',
@@ -227,12 +219,49 @@ final class EJO_Client
             //* All
             'read',
         );
+
+        //* Remove blog caps from client_caps by default
+        $default_client_caps = array_diff($default_client_caps, self::get_blog_caps(true));
+
+        return apply_filters( 'ejo_client_default_caps', $default_client_caps );
+    }
+
+    /* Blog capabilities */
+    public static function get_blog_caps( $force_return = false ) 
+    {
+        //* Check if blog is enabled
+        $is_blog_enabled = apply_filters( 'ejo_client_blog_enabled', true );
+
+        //* Return empty array if blog is disabled and no forced return (check default_client_caps)
+        if ( !$is_blog_enabled && !$force_return )
+            return array();
+
+        //* Blog capabilities
+        $blog_caps = array(
+            'edit_posts',
+            'edit_others_posts',
+            'edit_published_posts',
+            'publish_posts',
+            'delete_posts',
+            'delete_others_posts',
+            'delete_published_posts',
+            'delete_private_posts',
+            'edit_private_posts',
+            'read_private_posts',
+            'manage_categories',
+            'moderate_comments',
+        );
+
+        return apply_filters( 'ejo_client_blog_caps', $blog_caps );
     }
 
     /* Get gravityforms caps */
     public static function get_gravityforms_caps() 
     {
-        return array(
+        if ( ! is_plugin_active( 'gravityforms/gravityforms.php' ) ) 
+            return array();
+
+        $gravityforms_caps = array(
             'gravityforms_edit_forms',
             'gravityforms_delete_forms',
             'gravityforms_create_form',
@@ -249,33 +278,49 @@ final class EJO_Client
             // 'gravityforms_view_addons',
             // 'gravityforms_preview_forms',
         );
+
+        return apply_filters( 'ejo_client_gravityforms_caps', $gravityforms_caps );
     }
 
-    /* Blog capabilities */
-    public static function get_blog_caps() 
+    /* EJO contactadverntie capabilities */
+    public static function get_ejo_contactadvertentie_caps() 
     {
-        /* Blog capabilities to remove */
-        return array(
-            'edit_posts',
-            'edit_others_posts',
-            'edit_published_posts',
-            'publish_posts',
-            'delete_posts',
-            'delete_others_posts',
-            'delete_published_posts',
-            'delete_private_posts',
-            'edit_private_posts',
-            'read_private_posts',
-            'manage_categories',
-            'moderate_comments',
-        );
+        if ( ! class_exists( 'EJO_Contactads' ) )
+            return array();
+
+        return EJO_Contactads::get_caps();
+    }
+
+    //* Check whether client-role has caps
+    public static function client_has_caps( $client_role = null )
+    {
+        if (!$client_role)
+            $client_role = get_role( self::$role_name );
+
+        //* Return true if not empty
+        if ( ! empty($client_role->capabilities) )
+            return true;
+
+        return false;
+    }
+
+    //* Remove caps of the client-role
+    public static function remove_client_caps( $client_role = null )
+    {
+        if (!$client_role)
+            $client_role = get_role( self::$role_name );
+
+        //* Remove capabilities
+        foreach ($client_role->capabilities as $cap => $status ) {
+            $client_role->remove_cap( $cap );
+        }
     }
 
     /* Unregister client role */
     public static function unregister_client_role()
     {
         /* Remove client role */
-        remove_role( EJO_Client::$role_name );
+        remove_role( self::$role_name );
 
         /** 
          * When a role is removed, the users who have this role lose all rights on the site 

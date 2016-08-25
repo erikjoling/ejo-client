@@ -1,3 +1,6 @@
+- Added function remove_client_caps
+- Improved flexibility by adding filters
+- Reorganized code
 - Removed redundant function and made some organizational tweaks 
 
 1.2
