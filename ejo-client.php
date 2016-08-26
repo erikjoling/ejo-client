@@ -29,6 +29,9 @@ final class EJO_Client
     /* Stores the handle of this plugin */
     public static $handle;
 
+    /* Stores the plugin sub-directory/file */
+    public static $plugin;
+
     /* Stores the directory path for this plugin. */
     public static $dir;
 
@@ -64,17 +67,25 @@ final class EJO_Client
             return 'edit_theme_options';
         } );
 
-        // add_action( 'admin_init', array( 'EJO_Client', 'test') );
+        //* Add Reset link to plugin actions row
+        add_filter( 'plugin_action_links_' . self::$plugin, array( 'EJO_Client', 'add_plugin_actions_link' ) );
+
+        //* Hook client-cap reset to plugin page
+        add_action( 'pre_current_active_plugins', array( 'EJO_Client', 'reset_on_plugins_page' ) );
+
+        add_action( 'admin_init', array( 'EJO_Client', 'test') );
     }
 
-    public static function test() {
-        // self::set_client_caps();
+    public static function test() 
+    {
+
     }
 
     /* Defines the directory path and URI for the plugin. */
     public static function setup() 
     {
         self::$handle = dirname( plugin_basename( __FILE__ ) );
+        self::$plugin = plugin_basename( __FILE__ );
         self::$dir = plugin_dir_path( __FILE__ );
         self::$uri = plugin_dir_url( __FILE__ );
 
@@ -82,7 +93,7 @@ final class EJO_Client
         load_plugin_textdomain(self::$handle, false, self::$handle . '/languages' );
     }
 
-    
+
     /* Fire when activating this plugin */
     public static function on_plugin_activation()
     {
@@ -123,6 +134,8 @@ final class EJO_Client
         if ( is_null( $client_role ) ) {
             return __('No Client Role found');
         }
+
+        write_log( 'Setting client caps');
 
         //* Remove all current capabilities of the client-role
         self::remove_client_caps($client_role);
@@ -261,7 +274,7 @@ final class EJO_Client
         //* Filter if Gravity Forms should be included even if plugin is installed
         $is_gravityforms_enabled = apply_filters( 'ejo_client_gravityforms_enabled', true );
 
-        if ( ! is_plugin_active( 'gravityforms/gravityforms.php' ) || ! $is_gravityforms_enabled ) 
+        if ( ! class_exists( 'GFForms' ) || ! $is_gravityforms_enabled ) 
             return array();
 
         $gravityforms_caps = array(
@@ -289,12 +302,12 @@ final class EJO_Client
     public static function get_ejo_contactadvertentie_caps() 
     {
         //* Filter if EJO Contactads should be included even if plugin is installed
-        $is_ejo_contactadvertenties_enabled = apply_filters( 'ejo_client_ejo_contactadvertenties_enabled', true );
+        $is_ejo_contactadvertenties_enabled = apply_filters( 'ejo_client_ejo-contactadvertenties_enabled', true );
 
-        if ( ! is_plugin_active( 'ejo-contactadvertenties/ejo-contactadvertenties.php' ) || ! $is_ejo_contactadvertenties_enabled ) 
+        if ( ! class_exists( 'EJO_Contactads' )  || ! $is_ejo_contactadvertenties_enabled ) 
             return array();
 
-        return apply_filters( 'ejo_client_ejo_contactadvertenties_caps', EJO_Contactads::get_caps() );
+        return apply_filters( 'ejo_client_ejo-contactadvertenties_caps', EJO_Contactads::get_caps() );
     }
 
     //* Check whether client-role has caps
@@ -332,6 +345,32 @@ final class EJO_Client
          * When a role is removed, the users who have this role lose all rights on the site 
          * Maybe assign them to editor role
          */
+    }
+
+    /* Add reset link to plugin actions row */
+    public static function add_plugin_actions_link( $links )
+    {
+        $links[] = '<a href="'. esc_url( get_admin_url(null, 'plugins.php?reset-ejo-client=true') ) .'">Reset</a>';
+
+        return $links;
+    }
+
+    /* Reset Action on plugins page */
+    public static function reset_on_plugins_page()
+    {
+        if ( isset($_GET['reset-ejo-client']) ) {
+
+            $reset_ejo_client = esc_attr($_GET['reset-ejo-client']);
+
+            if ( $reset_ejo_client == true ) {
+                self::set_client_caps();
+
+                echo '<div id="message" class="updated notice is-dismissible">';
+                echo '<p>EJO Client Reset</p>';
+                echo '<button type="button" class="notice-dismiss"><span class="screen-reader-text">Dit bericht verbergen.</span></button>';
+                echo '</div>';
+            }
+        }
     }
 }
 
