@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Client
  * Plugin URI:          https://github.com/erikjoling/ejo-client
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             0.1.2
+ * Version:             1.2
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client
@@ -24,7 +24,7 @@ final class EJO_Client
     private static $_instance = null;
 
     /* Version number of this plugin */
-    public static $version = '0.1.2';
+    public static $version = '1.2';
 
     /* Stores the handle of this plugin */
     public static $handle;
@@ -64,7 +64,7 @@ final class EJO_Client
             return 'edit_theme_options';
         } );
 
-        add_action( 'admin_init', array( 'EJO_Client', 'test') );
+        // add_action( 'admin_init', array( 'EJO_Client', 'test') );
     }
 
     public static function test() {
@@ -82,6 +82,7 @@ final class EJO_Client
         load_plugin_textdomain(self::$handle, false, self::$handle . '/languages' );
     }
 
+    
     /* Fire when activating this plugin */
     public static function on_plugin_activation()
     {
@@ -93,8 +94,8 @@ final class EJO_Client
     public static function on_plugin_uninstall()
     {
         self::unregister_client_role();
-    }
-    
+    }   
+
     /* Register client role */
     public static function register_client_role() 
     {
@@ -113,6 +114,7 @@ final class EJO_Client
         }
     }
 
+    //* Set the right caps for the client role
     public static function set_client_caps()
     {
         /* Get new client role */
@@ -128,10 +130,8 @@ final class EJO_Client
         //* Get default client caps
         $client_caps = self::get_default_client_caps();
 
-        //* Add blog capabilities    
-        $client_caps = array_merge( $client_caps, self::get_blog_caps() );
-        
-        //* Add plugin capabilities
+        //* Add other capabilities    
+        $client_caps = array_merge( $client_caps, self::get_blog_caps() ); // Blog
         $client_caps = array_merge( $client_caps, self::get_gravityforms_caps() ); // Gravity Forms
         $client_caps = array_merge( $client_caps, self::get_ejo_contactadvertentie_caps() ); // EJO Contactadvertenties
 
@@ -141,14 +141,14 @@ final class EJO_Client
         //* Allow client_caps to be filtered
         $client_caps = apply_filters( 'ejo_client_caps', $client_caps );
 
-        //* Add client capabilities 
+        //* Add client capabilities to role
         foreach ($client_caps as $cap) {
 
             $client_role->add_cap( $cap );
         }
     }
 
-    /* Get the right caps for client */
+    /* Get default caps for client */
     public static function get_default_client_caps() 
     {
         $default_client_caps = array(/* Get the right caps for gravityforms */
@@ -226,7 +226,7 @@ final class EJO_Client
         return apply_filters( 'ejo_client_default_caps', $default_client_caps );
     }
 
-    /* Blog capabilities */
+    /* Get Blog capabilities */
     public static function get_blog_caps( $force_return = false ) 
     {
         //* Check if blog is enabled
@@ -258,7 +258,10 @@ final class EJO_Client
     /* Get gravityforms caps */
     public static function get_gravityforms_caps() 
     {
-        if ( ! is_plugin_active( 'gravityforms/gravityforms.php' ) ) 
+        //* Filter if Gravity Forms should be included even if plugin is installed
+        $is_gravityforms_enabled = apply_filters( 'ejo_client_gravityforms_enabled', true );
+
+        if ( ! is_plugin_active( 'gravityforms/gravityforms.php' ) || ! $is_gravityforms_enabled ) 
             return array();
 
         $gravityforms_caps = array(
@@ -282,13 +285,16 @@ final class EJO_Client
         return apply_filters( 'ejo_client_gravityforms_caps', $gravityforms_caps );
     }
 
-    /* EJO contactadverntie capabilities */
+    /* Get EJO contactadverntie capabilities */
     public static function get_ejo_contactadvertentie_caps() 
     {
-        if ( ! class_exists( 'EJO_Contactads' ) )
+        //* Filter if EJO Contactads should be included even if plugin is installed
+        $is_ejo_contactadvertenties_enabled = apply_filters( 'ejo_client_ejo_contactadvertenties_enabled', true );
+
+        if ( ! is_plugin_active( 'ejo-contactadvertenties/ejo-contactadvertenties.php' ) || ! $is_ejo_contactadvertenties_enabled ) 
             return array();
 
-        return EJO_Contactads::get_caps();
+        return apply_filters( 'ejo_client_ejo_contactadvertenties_caps', EJO_Contactads::get_caps() );
     }
 
     //* Check whether client-role has caps
