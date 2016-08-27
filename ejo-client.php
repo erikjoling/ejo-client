@@ -67,6 +67,9 @@ final class EJO_Client
             return 'edit_theme_options';
         } );
 
+        //* Add Reset when a plugin has been (de)activated
+        add_action( 'admin_init', array( 'EJO_Client', 'reset_on_every_plugin_activation'), 99 );
+
         //* Add Reset link to plugin actions row
         add_filter( 'plugin_action_links_' . self::$plugin, array( 'EJO_Client', 'add_plugin_actions_link' ) );
 
@@ -355,6 +358,22 @@ final class EJO_Client
         return $links;
     }
 
+    /**
+     * Reset client caps on every plugin (de)activation
+     */
+    public static function reset_on_every_plugin_activation()
+    {
+        global $pagenow;
+
+        if ($pagenow == 'plugins.php') {
+
+            if ( isset($_GET['activate']) || isset($_GET['deactivate']) || isset($_GET['activate-multi']) || isset($_GET['deactivate-multi']) ) {
+
+                self::set_client_caps();
+            }
+        }
+    }
+
     /* Reset Action on plugins page */
     public static function reset_on_plugins_page()
     {
@@ -367,7 +386,6 @@ final class EJO_Client
 
                 echo '<div id="message" class="updated notice is-dismissible">';
                 echo '<p>EJO Client Reset</p>';
-                echo '<button type="button" class="notice-dismiss"><span class="screen-reader-text">Dit bericht verbergen.</span></button>';
                 echo '</div>';
             }
         }
