@@ -138,8 +138,6 @@ final class EJO_Client
             return __('No Client Role found');
         }
 
-        write_log( 'Setting client caps');
-
         //* Remove all current capabilities of the client-role
         self::remove_client_caps($client_role);
 
@@ -314,6 +312,14 @@ final class EJO_Client
     }
 
     //* Check whether client-role has caps
+    public static function get_client_caps()
+    {
+        $client_role = get_role( self::$role_name );
+
+        return $client_role->capabilities;
+    }
+
+    //* Check whether client-role has caps
     public static function client_has_caps( $client_role = null )
     {
         if (!$client_role)
@@ -368,7 +374,6 @@ final class EJO_Client
         if ($pagenow == 'plugins.php') {
 
             if ( isset($_GET['activate']) || isset($_GET['deactivate']) || isset($_GET['activate-multi']) || isset($_GET['deactivate-multi']) ) {
-
                 self::set_client_caps();
             }
         }

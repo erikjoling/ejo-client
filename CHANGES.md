@@ -1,3 +1,4 @@
+- Added function get_client_caps
 - Reset client_caps on every plugin (de)activation
 - Replaced occurences of `is_plugin_active` by `class_exists`
 - Added reset link to plugins page
