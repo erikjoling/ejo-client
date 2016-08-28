@@ -128,11 +128,28 @@ final class EJO_Client
         }
     }
 
-    //* Set the right caps for the client role
-    public static function set_client_caps()
+    /* Reset Client Caps */
+    public static function reset_client_caps( $client_role = null )
     {
-        /* Get new client role */
-        $client_role = get_role( self::$role_name );
+        if (!$client_role)
+            $client_role = get_role( self::$role_name );
+
+        if ( is_null( $client_role ) ) {
+            return __('No Client Role found');
+        }
+
+        //* Remove all current capabilities of the client-role
+        self::remove_client_caps($client_role);
+
+        //* Set the right caps for the client role
+        self::set_client_caps($client_role);        
+    }
+
+    //* Set the right caps for the client role
+    public static function set_client_caps( $client_role = null )
+    {
+        if (!$client_role)
+            $client_role = get_role( self::$role_name );
 
         if ( is_null( $client_role ) ) {
             return __('No Client Role found');
