@@ -1,3 +1,4 @@
+1.3.1
 - Added support for saving options of Wordpress SEO plugin
 
 1.3
