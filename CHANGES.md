@@ -1,3 +1,5 @@
+- Added support for saving options of Wordpress SEO plugin
+
 1.3
 - Made set_client_caps a bit more flexible
 - Added function get_client_caps
