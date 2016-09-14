@@ -1,6 +1,4 @@
-- Remove Extra > tools.php menu
 - Allow Clients to export their content
-- Removed Go Premium and Search Console pages from SEO menu
 
 1.3.1
 - Added support for saving options of Wordpress SEO plugin
