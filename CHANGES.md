@@ -1,3 +1,4 @@
+1.3.2
 - Allow Clients to export their content
 
 1.3.1
