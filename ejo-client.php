@@ -235,7 +235,7 @@ final class EJO_Client
             'edit_theme_options',
             // 'edit_themes',
             // 'edit_users',
-            // 'export',
+            'export',
             // 'import',
             // 'install_plugins',
             // 'install_themes',
