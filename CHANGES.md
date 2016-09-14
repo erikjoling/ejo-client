@@ -1,5 +1,6 @@
 1.3.2
 - Allow Clients to export their content
+- Remove opinionated wordpress seo code
 
 1.3.1
 - Added support for saving options of Wordpress SEO plugin
