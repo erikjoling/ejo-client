@@ -62,16 +62,6 @@ final class EJO_Client
         register_uninstall_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
         register_deactivation_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
 
-        /* Change Wordpress SEO capability to edit_theme_options */
-        add_filter( 'wpseo_manage_options_capability',                          array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_permalinks_options',    array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_internallinks_options', array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_permalinks_options',    array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_rss_options',           array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_xml_sitemap_options',   array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_social_options',        array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_options',               array( 'EJO_Client', 'wordpress_seo_capability') );
-
         //* Add Reset when a plugin has been (de)activated
         add_action( 'admin_init', array( 'EJO_Client', 'reset_on_every_plugin_activation'), 99 );
 
@@ -81,18 +71,50 @@ final class EJO_Client
         //* Hook client-cap reset to plugin page
         add_action( 'pre_current_active_plugins', array( 'EJO_Client', 'reset_on_plugins_page' ) );
 
-        add_action( 'admin_init', array( 'EJO_Client', 'test') );
+        /* Better integration of Yoast Wordpress SEO */
+        add_action( 'after_setup_theme', array( 'EJO_Client', 'wordpress_seo' ), 99 );
+    }
+
+    /* Improve Yoast Wordpress SEO support */
+    public static function wordpress_seo()
+    {
+        //* Edit main SEO capability
+        add_filter( 'wpseo_manage_options_capability',                          array( 'EJO_Client', 'wordpress_seo_capability') );
+
+        //* Change capability necessary to save options
+        add_filter( 'option_page_capability_yoast_wpseo_permalinks_options',    array( 'EJO_Client', 'wordpress_seo_capability') );
+        add_filter( 'option_page_capability_yoast_wpseo_internallinks_options', array( 'EJO_Client', 'wordpress_seo_capability') );
+        add_filter( 'option_page_capability_yoast_wpseo_permalinks_options',    array( 'EJO_Client', 'wordpress_seo_capability') );
+        add_filter( 'option_page_capability_yoast_wpseo_rss_options',           array( 'EJO_Client', 'wordpress_seo_capability') );
+        add_filter( 'option_page_capability_yoast_wpseo_xml_sitemap_options',   array( 'EJO_Client', 'wordpress_seo_capability') );
+        add_filter( 'option_page_capability_yoast_wpseo_social_options',        array( 'EJO_Client', 'wordpress_seo_capability') );
+        add_filter( 'option_page_capability_yoast_wpseo_options',               array( 'EJO_Client', 'wordpress_seo_capability') );
+
+        //* Remove Go Premium and Search Console from menu
+        add_filter( 'wpseo_submenu_pages', function($submenu_pages) {
+
+            //* Skip if user can manage_options
+            if (current_user_can( 'manage_options'))
+                return $submenu_pages;
+
+            foreach ($submenu_pages as $index => $submenu_page) {
+
+                //* Remove Search Console and Go Premium 
+                if ($submenu_page[4] == 'wpseo_search_console' || $submenu_page[4] == 'wpseo_licenses')
+                    unset($submenu_pages[$index]);
+            }
+
+            return $submenu_pages;
+        });
     }
 
     /* Wordpress SEO capability */
-    public static function wordpress_seo_capability()
+    public static function wordpress_seo_capability( $capability )
     {
-        return 'edit_theme_options';
-    }
+        //* Downgrade capability from manage_options to edit_theme_options to support ejo-client
+        $capability = 'edit_theme_options';        
 
-    public static function test() 
-    {
-
+        return $capability;
     }
 
     /* Defines the directory path and URI for the plugin. */
