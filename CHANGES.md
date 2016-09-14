@@ -1,3 +1,5 @@
+- Allow Clients to export their content
+
 1.3.1
 - Added support for saving options of Wordpress SEO plugin
 

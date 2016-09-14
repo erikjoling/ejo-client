@@ -62,16 +62,6 @@ final class EJO_Client
         register_uninstall_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
         register_deactivation_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
 
-        /* Change Wordpress SEO capability to edit_theme_options */
-        add_filter( 'wpseo_manage_options_capability',                          array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_permalinks_options',    array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_internallinks_options', array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_permalinks_options',    array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_rss_options',           array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_xml_sitemap_options',   array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_social_options',        array( 'EJO_Client', 'wordpress_seo_capability') );
-        add_filter( 'option_page_capability_yoast_wpseo_options',               array( 'EJO_Client', 'wordpress_seo_capability') );
-
         //* Add Reset when a plugin has been (de)activated
         add_action( 'admin_init', array( 'EJO_Client', 'reset_on_every_plugin_activation'), 99 );
 
@@ -80,19 +70,6 @@ final class EJO_Client
 
         //* Hook client-cap reset to plugin page
         add_action( 'pre_current_active_plugins', array( 'EJO_Client', 'reset_on_plugins_page' ) );
-
-        add_action( 'admin_init', array( 'EJO_Client', 'test') );
-    }
-
-    /* Wordpress SEO capability */
-    public static function wordpress_seo_capability()
-    {
-        return 'edit_theme_options';
-    }
-
-    public static function test() 
-    {
-
     }
 
     /* Defines the directory path and URI for the plugin. */
@@ -213,7 +190,7 @@ final class EJO_Client
             'edit_theme_options',
             // 'edit_themes',
             // 'edit_users',
-            // 'export',
+            'export',
             // 'import',
             // 'install_plugins',
             // 'install_themes',
