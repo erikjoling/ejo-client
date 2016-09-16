@@ -1,3 +1,5 @@
+- Reset caps on plugin/theme upgrade
+
 1.3.2
 - Allow Clients to export their content
 - Remove opinionated wordpress seo code

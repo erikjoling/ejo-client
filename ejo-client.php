@@ -65,6 +65,9 @@ final class EJO_Client
         //* Add Reset when a plugin has been (de)activated
         add_action( 'admin_init', array( 'EJO_Client', 'reset_on_every_plugin_activation'), 99 );
 
+        //* Reset caps on plugin and theme upgrades
+        add_action( 'upgrader_process_complete', array( 'EJO_Client', 'reset_on_every_upgrade'), 10, 2 );
+
         //* Add Reset link to plugin actions row
         add_filter( 'plugin_action_links_' . self::$plugin, array( 'EJO_Client', 'add_plugin_actions_link' ) );
 
@@ -116,23 +119,6 @@ final class EJO_Client
         }
     }
 
-    /* Reset Client Caps */
-    public static function reset_client_caps( $client_role = null )
-    {
-        if (!$client_role)
-            $client_role = get_role( self::$role_name );
-
-        if ( is_null( $client_role ) ) {
-            return __('No Client Role found');
-        }
-
-        //* Remove all current capabilities of the client-role
-        self::remove_client_caps($client_role);
-
-        //* Set the right caps for the client role
-        self::set_client_caps($client_role);        
-    }
-
     //* Set the right caps for the client role
     public static function set_client_caps( $client_role = null )
     {
@@ -165,6 +151,12 @@ final class EJO_Client
 
             $client_role->add_cap( $cap );
         }
+    }
+
+    //* Alias for set_client_caps()
+    public static function reset_client_caps( $client_role = null )
+    {
+        self::set_client_caps( $client_role );
     }
 
     /* Get default caps for client */
@@ -381,6 +373,17 @@ final class EJO_Client
             if ( isset($_GET['activate']) || isset($_GET['deactivate']) || isset($_GET['activate-multi']) || isset($_GET['deactivate-multi']) ) {
                 self::set_client_caps();
             }
+        }
+    }
+
+    /**
+     * Reset client caps on every plugin (de)activation
+     */
+    public static function reset_on_every_upgrade($upgrader_object, $data ) 
+    {
+        //* Reset client caps on plugin or theme upgrade
+        if ( $data['type'] == 'plugin' || $data['type'] == 'theme' ) {
+            self::set_client_caps();
         }
     }
 
