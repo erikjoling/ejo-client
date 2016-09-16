@@ -1,3 +1,4 @@
+1.3.3
 - Reset caps on plugin/theme upgrade
 
 1.3.2

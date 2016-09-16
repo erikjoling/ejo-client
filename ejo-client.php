@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Client
  * Plugin URI:          https://github.com/erikjoling/ejo-client
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             1.3.2
+ * Version:             1.3.3
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client
@@ -24,7 +24,7 @@ final class EJO_Client
     private static $_instance = null;
 
     /* Version number of this plugin */
-    public static $version = '1.3.2';
+    public static $version = '1.3.3';
 
     /* Stores the handle of this plugin */
     public static $handle;
