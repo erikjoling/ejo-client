@@ -1,3 +1,7 @@
+1.3.4
+- Added support for WordPress SEO
+- Improved supported plugin organisation
+
 1.3.3
 - Reset caps on plugin/theme upgrade
 

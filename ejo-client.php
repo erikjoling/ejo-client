@@ -85,6 +85,11 @@ final class EJO_Client
 
         /* Load the translation for the plugin */
         load_plugin_textdomain(self::$handle, false, self::$handle . '/languages' );
+
+        /* Load the files of supported plugins */
+        require_once( self::$dir . 'supported-plugins/wordpress-seo.php' );
+        require_once( self::$dir . 'supported-plugins/gravityforms.php' );
+        require_once( self::$dir . 'supported-plugins/ejo-contactadvertenties.php' );
     }
 
 
@@ -137,14 +142,17 @@ final class EJO_Client
 
         //* Add other capabilities    
         $client_caps = array_merge( $client_caps, self::get_blog_caps() ); // Blog
-        $client_caps = array_merge( $client_caps, self::get_gravityforms_caps() ); // Gravity Forms
-        $client_caps = array_merge( $client_caps, self::get_ejo_contactadvertentie_caps() ); // EJO Contactadvertenties
+        $client_caps = array_merge( $client_caps, ejo_get_gravityforms_caps() ); // Gravity Forms
+        $client_caps = array_merge( $client_caps, get_ejo_contactadvertentie_caps() ); // EJO Contactadvertenties
 
         //* Remove double capabilities
         $client_caps = array_unique($client_caps);
 
         //* Allow client_caps to be filtered
         $client_caps = apply_filters( 'ejo_client_caps', $client_caps );
+
+        //* Remove double capabilities
+        $client_caps = array_unique($client_caps);
 
         //* Add client capabilities to role
         foreach ($client_caps as $cap) {
@@ -264,48 +272,6 @@ final class EJO_Client
         );
 
         return apply_filters( 'ejo_client_blog_caps', $blog_caps );
-    }
-
-    /* Get gravityforms caps */
-    public static function get_gravityforms_caps() 
-    {
-        //* Filter if Gravity Forms should be included even if plugin is installed
-        $is_gravityforms_enabled = apply_filters( 'ejo_client_gravityforms_enabled', true );
-
-        if ( ! class_exists( 'GFForms' ) || ! $is_gravityforms_enabled ) 
-            return array();
-
-        $gravityforms_caps = array(
-            'gravityforms_edit_forms',
-            'gravityforms_delete_forms',
-            'gravityforms_create_form',
-            'gravityforms_view_entries',
-            'gravityforms_edit_entries',
-            'gravityforms_delete_entries',
-            // 'gravityforms_view_settings',
-            // 'gravityforms_edit_settings',
-            // 'gravityforms_export_entries',
-            // 'gravityforms_uninstall',
-            'gravityforms_view_entry_notes',
-            'gravityforms_edit_entry_notes',
-            // 'gravityforms_view_updates',
-            // 'gravityforms_view_addons',
-            // 'gravityforms_preview_forms',
-        );
-
-        return apply_filters( 'ejo_client_gravityforms_caps', $gravityforms_caps );
-    }
-
-    /* Get EJO contactadverntie capabilities */
-    public static function get_ejo_contactadvertentie_caps() 
-    {
-        //* Filter if EJO Contactads should be included even if plugin is installed
-        $is_ejo_contactadvertenties_enabled = apply_filters( 'ejo_client_ejo-contactadvertenties_enabled', true );
-
-        if ( ! class_exists( 'EJO_Contactads' )  || ! $is_ejo_contactadvertenties_enabled ) 
-            return array();
-
-        return apply_filters( 'ejo_client_ejo-contactadvertenties_caps', EJO_Contactads::get_caps() );
     }
 
     //* Check whether client-role has caps
