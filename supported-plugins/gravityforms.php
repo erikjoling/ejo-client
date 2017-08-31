@@ -25,6 +25,7 @@ function ejo_get_gravityforms_caps()
         // 'gravityforms_view_updates',
         // 'gravityforms_view_addons',
         // 'gravityforms_preview_forms',
+        // 'gravityforms_system_status',
     );
 
     return apply_filters( 'ejo_client_gravityforms_caps', $gravityforms_caps );
