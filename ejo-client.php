@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Client
  * Plugin URI:          https://github.com/erikjoling/ejo-client
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             1.3.3
+ * Version:             1.4
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client
@@ -12,7 +12,7 @@
  * GitHub Plugin URI:   https://github.com/erikjoling/ejo-client
  * GitHub Branch:       master
  *
- * Minimum PHP version: 5.3.0
+ * Minimum PHP version: 5.6
  */
 
 /**
@@ -24,7 +24,7 @@ final class EJO_Client
     private static $_instance = null;
 
     /* Version number of this plugin */
-    public static $version = '1.3.3';
+    public static $version = '1.4';
 
     /* Stores the handle of this plugin */
     public static $handle;
@@ -56,23 +56,29 @@ final class EJO_Client
         self::setup();
 
         /* Add activation hook */
-        register_activation_hook( __FILE__, array( 'EJO_Client', 'on_plugin_activation') );
+        register_activation_hook( __FILE__, ['EJO_Client', 'on_plugin_activation'] );
 
         /* Add uninstall hook */
-        register_uninstall_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
-        register_deactivation_hook( __FILE__, array( 'EJO_Client', 'on_plugin_uninstall') );
+        register_uninstall_hook( __FILE__, ['EJO_Client', 'on_plugin_uninstall'] );
+        register_deactivation_hook( __FILE__, ['EJO_Client', 'on_plugin_uninstall'] );
 
         //* Add Reset when a plugin has been (de)activated
-        add_action( 'admin_init', array( 'EJO_Client', 'reset_on_every_plugin_activation'), 99 );
+        add_action( 'admin_init', ['EJO_Client', 'reset_on_every_plugin_activation'], 99 );
 
         //* Reset caps on plugin and theme upgrades
-        add_action( 'upgrader_process_complete', array( 'EJO_Client', 'reset_on_every_upgrade'), 10, 2 );
+        add_action( 'upgrader_process_complete', ['EJO_Client', 'reset_on_every_upgrade'], 10, 2 );
 
         //* Add Reset link to plugin actions row
-        add_filter( 'plugin_action_links_' . self::$plugin, array( 'EJO_Client', 'add_plugin_actions_link' ) );
+        add_filter( 'plugin_action_links_' . self::$plugin, ['EJO_Client', 'add_plugin_actions_link'] );
 
         //* Hook client-cap reset to plugin page
-        add_action( 'pre_current_active_plugins', array( 'EJO_Client', 'reset_on_plugins_page' ) );
+        add_action( 'pre_current_active_plugins', ['EJO_Client', 'reset_on_plugins_page'] );
+
+        // Restrict roles
+        add_filter( 'editable_roles', ['EJO_Client', 'editable_roles'] );
+
+        // 
+        add_filter( 'map_meta_cap', ['EJO_Client', 'map_meta_cap'], 10, 4 );
     }
 
     /* Defines the directory path and URI for the plugin. */
@@ -181,23 +187,23 @@ final class EJO_Client
 
             //* Admin
             // 'activate_plugins',
-            // 'create_users',
             // 'delete_plugins',
             // 'delete_themes',
-            // 'delete_users',
             // 'edit_files',
             // 'edit_plugins',
             'edit_theme_options',
             // 'edit_themes',
-            // 'edit_users',
             'export',
             // 'import',
             // 'install_plugins',
             // 'install_themes',
-            // 'list_users',
             // 'manage_options',
-            // 'promote_users',
-            // 'remove_users',
+            'create_users',
+            'delete_users',
+            'edit_users',
+            'list_users',
+            'promote_users',
+            'remove_users',
             // 'switch_themes',
             // 'update_core',
             // 'update_plugins',
@@ -368,6 +374,62 @@ final class EJO_Client
                 echo '</div>';
             }
         }
+    }
+
+    /**
+     * Helper function get getting roles that the user is allowed to create/edit/delete.
+     *
+     * @param   WP_User $user
+     * @return  array
+     */
+    public static function get_allowed_roles( $user ) {
+        $allowed = array();
+
+        if ( in_array( 'administrator', $user->roles ) ) { // Admin can edit all roles
+            $allowed = array_keys( $GLOBALS['wp_roles']->roles );
+        } 
+        elseif ( in_array( self::$role_name, $user->roles ) ) {
+            $allowed[] = self::$role_name;
+        } 
+
+        return $allowed;
+    }
+
+    /**
+     * Remove roles that are not allowed for the current user role.
+     */
+    public static function editable_roles( $roles ) {
+        if ( $user = wp_get_current_user() ) {
+            $allowed = self::get_allowed_roles( $user );
+
+            foreach ( $roles as $role => $caps ) {
+                if ( ! in_array( $role, $allowed ) )
+                    unset( $roles[ $role ] );
+            }
+        }
+
+        return $roles;
+    }
+
+    /**
+     * Prevent users deleting/editing users with a role outside their allowance.
+     */
+    public static function map_meta_cap( $caps, $cap, $user_ID, $args ) {
+        if ( ( $cap === 'edit_user' || $cap === 'delete_user' ) && $args ) {
+            $the_user = get_userdata( $user_ID ); // The user performing the task
+            $user     = get_userdata( $args[0] ); // The user being edited/deleted
+
+            if ( $the_user && $user && $the_user->ID != $user->ID /* User can always edit self */ ) {
+                $allowed = self::get_allowed_roles( $the_user );
+
+                if ( array_diff( $user->roles, $allowed ) ) {
+                    // Target user has roles outside of our limits
+                    $caps[] = 'not_allowed';
+                }
+            }
+        }
+
+        return $caps;
     }
 }
 

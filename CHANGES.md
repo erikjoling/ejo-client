@@ -1,3 +1,6 @@
+1.4
+- Allow Clients to create and manage Clients
+
 1.3.4
 - Added support for WordPress SEO
 - Improved supported plugin organisation
