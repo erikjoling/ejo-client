@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Client
  * Plugin URI:          https://github.com/erikjoling/ejo-client
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             1.4
+ * Version:             1.4.1
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client
@@ -24,7 +24,7 @@ final class EJO_Client
     private static $_instance = null;
 
     /* Version number of this plugin */
-    public static $version = '1.4';
+    public static $version = '1.4.1';
 
     /* Stores the handle of this plugin */
     public static $handle;
@@ -64,6 +64,10 @@ final class EJO_Client
 
         //* Add Reset when a plugin has been (de)activated
         add_action( 'admin_init', ['EJO_Client', 'reset_on_every_plugin_activation'], 99 );
+
+        //* Add hook to remove damned Gravity Forms filter
+        add_action( 'admin_menu', ['EJO_Client', 'gravityforms_fix'], 9 );
+        add_action( 'after_setup_theme', ['EJO_Client', 'gravityforms_fix'], 99 );
 
         //* Reset caps on plugin and theme upgrades
         add_action( 'upgrader_process_complete', ['EJO_Client', 'reset_on_every_upgrade'], 10, 2 );
@@ -310,6 +314,21 @@ final class EJO_Client
         //* Remove capabilities
         foreach ($client_role->capabilities as $cap => $status ) {
             $client_role->remove_cap( $cap );
+        }
+    }
+
+    /**
+     * Gravity Forms adds a filter to WordPress `user_has_cap` to check wether to
+     * give a user `gforms_has_full_access` capability. Something about this filter
+     * isn't playing nicely with EJO Client. So remove the darned thing!
+     */
+    public static function gravityforms_fix() {
+
+        $user = wp_get_current_user();
+
+        /* Only remove for EJO Client */
+        if (in_array(self::$role_name, $user->roles)) {
+            remove_filter( 'user_has_cap', array( 'RGForms', 'user_has_cap' ), 10, 3 );
         }
     }
 

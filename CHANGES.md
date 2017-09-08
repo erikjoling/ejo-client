@@ -1,3 +1,6 @@
+1.4.1
+- Fixed Gravity Forms 'gforms_has_full_access'-bug
+
 1.4
 - Allow Clients to create and manage Clients
 
