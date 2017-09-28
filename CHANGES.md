@@ -1,3 +1,6 @@
+1.4.2
+- Fixed WP SEO capability changes
+
 1.4.1
 - Fixed Gravity Forms 'gforms_has_full_access'-bug
 

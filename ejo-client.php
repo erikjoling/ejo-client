@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Client
  * Plugin URI:          https://github.com/erikjoling/ejo-client
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             1.4.1
+ * Version:             1.4.2
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client
@@ -24,7 +24,7 @@ final class EJO_Client
     private static $_instance = null;
 
     /* Version number of this plugin */
-    public static $version = '1.4.1';
+    public static $version = '1.4.2';
 
     /* Stores the handle of this plugin */
     public static $handle;
@@ -154,6 +154,7 @@ final class EJO_Client
         $client_caps = array_merge( $client_caps, self::get_blog_caps() ); // Blog
         $client_caps = array_merge( $client_caps, ejo_get_gravityforms_caps() ); // Gravity Forms
         $client_caps = array_merge( $client_caps, get_ejo_contactadvertentie_caps() ); // EJO Contactadvertenties
+        $client_caps = array_merge( $client_caps, ejo_get_wpseo_caps() ); // WordPress SEO caps
 
         //* Remove double capabilities
         $client_caps = array_unique($client_caps);
