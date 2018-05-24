@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Client
  * Plugin URI:          https://github.com/erikjoling/ejo-client
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             1.4.2
+ * Version:             1.5
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client
@@ -83,6 +83,13 @@ final class EJO_Client
 
         // 
         add_filter( 'map_meta_cap', ['EJO_Client', 'map_meta_cap'], 10, 4 );
+
+        add_filter( 'wp_dropdown_users_args', ['EJO_Client', 'add_clients_to_user_dropdown'], 10, 2 );
+        
+        // DEBUG
+        // add_action( 'after_setup_theme', function() {
+        //     EJO_Client::get_caps();
+        // });
     }
 
     /* Defines the directory path and URI for the plugin. */
@@ -181,7 +188,7 @@ final class EJO_Client
     /* Get default caps for client */
     public static function get_default_client_caps() 
     {
-        $default_client_caps = array(/* Get the right caps for gravityforms */
+        $default_client_caps = array(
             //* Super Admin
             // 'manage_network',
             // 'manage_sites',
@@ -248,6 +255,10 @@ final class EJO_Client
 
             //* All
             'read',
+
+            //* Levels
+            //* Needed to appear in author box (https://stackoverflow.com/questions/6330008/wordpress-custom-users-not-appearing-in-author-box)
+            // 'level_7', // Does not work somehow. Fixed this by using filter `wp_dropdown_users_args`
         );
 
         //* Remove blog caps from client_caps by default
@@ -450,6 +461,30 @@ final class EJO_Client
         }
 
         return $caps;
+    }
+
+    /**
+     * Add Clients to author dropdown of page-editing
+     *
+     * NOTE: This method adds all users to the dropdown!
+     * More info: https://stackoverflow.com/questions/6330008/wordpress-custom-users-not-appearing-in-author-box
+     */
+    public static function add_clients_to_user_dropdown( $query_args, $r ) 
+    {         
+        $query_args['who'] = '';
+        return $query_args;
+    }
+
+    //* Get caps
+    public static function get_caps()
+    {
+        $client_role = get_role( self::$role_name );
+
+        // error_log(print_r($client_role, true));
+
+        //* Return true if not empty
+        if ( ! empty($client_role->capabilities) )
+            return $client_role->capabilities;
     }
 }
 

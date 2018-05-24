@@ -1,3 +1,6 @@
+1.5
+- Fixed missing client-users in author dropdown on post-editing
+
 1.4.2
 - Fixed WP SEO capability changes
 
