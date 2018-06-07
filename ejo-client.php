@@ -3,7 +3,7 @@
  * Plugin Name:         EJO Client
  * Plugin URI:          https://github.com/erikjoling/ejo-client
  * Description:         Improved permissions and user experience for EJOweb clients.
- * Version:             1.5
+ * Version:             1.5.1
  * Author:              Erik Joling
  * Author URI:          https://www.ejoweb.nl/
  * Text Domain:         ejo-client
@@ -221,6 +221,9 @@ final class EJO_Client
             // 'update_plugins',
             // 'update_themes',
             // 'edit_dashboard',
+
+            //* Privacy
+            // 'manage_privacy_options', // This doesn't work because this isn't a primary capability
 
             //* Editor
             'moderate_comments',
@@ -443,9 +446,17 @@ final class EJO_Client
     }
 
     /**
-     * Prevent users deleting/editing users with a role outside their allowance.
+     * Edit capabilities??
      */
     public static function map_meta_cap( $caps, $cap, $user_ID, $args ) {
+
+        // Map `manage_privacy_options` to 'edit_theme_options' capability
+        // Custom primary capabilities are not allowed or something...
+        if ( $cap === 'manage_privacy_options' ) {
+            $caps = array('edit_theme_options');
+        }
+
+        // Prevent users deleting/editing users with a role outside their allowance.
         if ( ( $cap === 'edit_user' || $cap === 'delete_user' ) && $args ) {
             $the_user = get_userdata( $user_ID ); // The user performing the task
             $user     = get_userdata( $args[0] ); // The user being edited/deleted

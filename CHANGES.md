@@ -1,3 +1,6 @@
+1.5.1
+- Added capability for privacy page editing
+
 1.5
 - Fixed missing client-users in author dropdown on post-editing
 
